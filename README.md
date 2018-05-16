@@ -1,27 +1,5 @@
 Hello.
 This is a bundle of scripts used to prepare competitive programming problems
-The files here have the following structure:
-* README.md
-* problemname
-* timelimit
-* lib.sh
-* build\_test.sh
-* run.sh
-* ingen
- * makefile
- * ingen.bin
-* incf
-* okgen
- * makefile
- * okgen.bin
-* eval
- * makefile
- * eval.bin
-* tests
- * ...
-* src
- * ...
-* stage
 
 File descriptions:
 
