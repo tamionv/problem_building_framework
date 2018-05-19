@@ -9,6 +9,9 @@ source lib.sh
 # Get problem name
 problemname=`cat problemname`
 
+# Make stage (as git deletes it)
+mkdir stage
+
 #################
 # Build input:
 #################

@@ -16,6 +16,9 @@
 # include the library
 source lib.sh
 
+# make stage (as git deletes it)
+mkdir stage
+
 # Get an appropriate timeout command
 timeoutCommand=timeout
 
