@@ -9,7 +9,7 @@ problemname | A file that should contain exactly the problem name
 timelimit | A file that should contain the time limit, in seconds
 lib.sh | A bash library, used for the scripts in this bundle
 build\_test.sh | ./build\_test.sh *xxx* will build *problemname*-*xxx*.in with ingen/ingen.bin with configuration incf/*xxx*
-run.sh | ./run.sh *xxx* will run src/*xxx* on all the tests
+run.sh | ./run.sh -s "s1.cpp s2.cpp" -t "00 01" will run s1.cpp, s2.cpp on 00, 01 -- ommiting -s or -t respectively leads to running all sources / all tests
 ingen | Contains files related to input generation
 ingen/makefile | A file that needs to make the input generator, ingen/ingen.bin
 ingen/ingen.bin | The input generator. When run, a configuration file *problemname*.cf might be made available to it (depending on whether an appropriate file exists in incf). The input should be written to a file *problemname*.in.
