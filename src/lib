@@ -36,7 +36,7 @@ run_src_test () {
     fi
 
     # Fetch the problem configuration
-    source problemconfig.sh
+    source problemconfig
 
     # clear any previous messages
     echo -en "\r                                      \r"
@@ -54,7 +54,7 @@ run_src_test () {
     cp tests/$testname.in stage/$problemname.in
 
     # Get the problem config
-    source problemconfig.sh
+    source problemconfig
 
     # This string runs the competitor's executable
     runExec="./$problemname.bin > /dev/null 2> /dev/null"

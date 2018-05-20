@@ -7,10 +7,10 @@ Description of a project's structure:
 
 File name | Description
 --------- | -----------
-problemconfig.sh | A script that sets problem configuration variables (i.e. $problemname, $timelimit)
-lib.sh | A bash library, used for the scripts in this bundle
-run.sh | ./run.sh -s "s1.cpp s2.cpp" -t "00 01" will run s1.cpp, s2.cpp on 00, 01 -- ommiting -s or -t respectively leads to running all sources / all tests
-buildtests.sh | ./buildtests.sh will build all tests following testmanifest
+problemconfig | A script that sets problem configuration variables (i.e. $problemname, $timelimit)
+lib | A bash library, used for the scripts in this bundle
+run | ./run -s "s1.cpp s2.cpp" -t "00 01" will run s1.cpp, s2.cpp on 00, 01 -- ommiting -s or -t respectively leads to running all sources / all tests
+buildtests | ./buildtests will build all tests following testmanifest
 testmanifest | describes the structure of the tests
 ingen | Contains files related to input generation
 ingen/makefile | A file that needs to make the input generator, ingen/ingen.bin

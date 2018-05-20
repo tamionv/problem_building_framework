@@ -4,13 +4,10 @@
 # Tamio-Vesa Nakajima
 
 # include the library
-source lib.sh
+source lib
 
 # include the configuration
-source problemconfig.sh
-
-# Make stage (as git deletes it)
-mkdir -p stage
+source problemconfig
 
 # We will want to remember this:
 currtest=0

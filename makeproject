@@ -24,13 +24,9 @@ touch $1/$problemname/ingen/makefile
 touch $1/$problemname/okgen/makefile
 touch $1/$problemname/src/makefile
 
-cp src/buildtests.sh $1/$problemname/buildtests.sh
-cp src/lib.sh $1/$problemname/lib.sh
-cp src/run.sh $1/$problemname/run.sh
+cp src/* $1/$problemname
 
 touch $1/$problemname/testmanifest
 
-echo "problemname=$problemname" > $1/$problemname/problemconfig.sh
-echo "timelimit=$timelimit" >> $1/$problemname/problemconfig.sh
-
-cp src/todo $1/$problemname/todo
+echo "problemname=$problemname" > $1/$problemname/problemconfig
+echo "timelimit=$timelimit" >> $1/$problemname/problemconfig

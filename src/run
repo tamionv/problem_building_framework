@@ -14,10 +14,10 @@
 #########################
 
 # include the library
-source lib.sh
+source lib
 
 # include the configuration
-source problemconfig.sh
+source problemconfig
 
 # make stage (as git deletes it)
 mkdir -p stage
@@ -34,7 +34,7 @@ tests=""
 while getopts "hs:t:" opt; do
     case $opt in
         h)
-            echo "Usage: ./run.sh -s [source] -t [test]"
+            echo "Usage: ./run -s [source] -t [test]"
             exit 0
             ;;
         s)

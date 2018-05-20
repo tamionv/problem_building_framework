@@ -1,7 +1,7 @@
 project_directory=`mktemp -d`
 
 echo Building project
-echo $'aplusb\n0.1' | ./makeproject.sh $project_directory
+echo $'aplusb\n0.1' | ./makeproject $project_directory
 
 echo Copying files into project
 cp test/aplusb/incf/* $project_directory/aplusb/incf
@@ -17,8 +17,8 @@ cd $project_directory/aplusb
 output_file=`mktemp`
 
 echo Running sources
-./buildtests.sh
-./run.sh
+./buildtests
+./run
 
 echo Cleanup
 
