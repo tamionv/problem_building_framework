@@ -1,9 +1,11 @@
 Hello.
 This is a bundle of scripts used to prepare competitive programming problems
 
-File descriptions:
+To make a project, while in this directory, call ./makeproject */path/to/where/project/should/be*.
 
-README.md | This readme
+Description of a project's structure:
+
+File name | Description
 --------- | -----------
 problemconfig.sh | A script that sets problem configuration variables (i.e. $problemname, $timelimit)
 lib.sh | A bash library, used for the scripts in this bundle
