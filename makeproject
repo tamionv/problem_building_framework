@@ -17,6 +17,7 @@ mkdir $1/$problemname/okgen
 mkdir $1/$problemname/src
 mkdir $1/$problemname/stage
 mkdir $1/$problemname/tests
+mkdir $1/$problemname/oldtests
 
 touch $1/$problemname/eval/makefile
 touch $1/$problemname/incf/makefile

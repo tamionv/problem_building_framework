@@ -11,13 +11,12 @@ cp test/aplusb/eval/* $project_directory/aplusb/eval
 cp test/aplusb/src/* $project_directory/aplusb/src
 cp test/aplusb/testmanifest $project_directory/aplusb/testmanifest
 
-
 cd $project_directory/aplusb
 
 output_file=`mktemp`
 
 echo Running sources
-./buildtests
+echo first | ./buildtests
 ./run
 
 echo Cleanup
