@@ -13,8 +13,9 @@ source problemconfig
 # ARGUMENT PARSING
 #############################
 
+rebuild_inputs=true
 
-while getopts "r:h" opt; do
+while getopts "r:ho" opt; do
     case $opt in
         h)
             echo "Usage: ./run -r(estore) [revision to restore]"
@@ -24,6 +25,9 @@ while getopts "r:h" opt; do
             rm -r tests
             unzip oldtests/$OPTARG.zip
             exit 0
+            ;;
+        o)
+            rebuild_inputs=false
             ;;
     esac
 done
@@ -48,25 +52,27 @@ cat testmanifest | while read instr; do
         # Build input:
         #################
 
-        # Build input generator
-        try "cd ingen && make -s && cd .." "input generator build fail"
+        if [ $rebuild_inputs = true ] ; then
+            # Build input generator
+            cd ingen && make -s && cd ..
 
-        # Copy ingen/ingen.bin and incf/$1 into stage
-        cp ingen/ingen.bin stage/$problemname.bin
-        try "cp incf/$incf stage/$problemname.cf" "incf/$incf doesn't exist"
+            # Copy ingen/ingen.bin and incf/$1 into stage
+            cp ingen/ingen.bin stage/$problemname.bin
+            cp incf/$incf stage/$problemname.cf
 
-        # Build input
-        try "cd stage && ./$problemname.bin > ../tests/$problemname-$nr.in && cd .." "input generation fail"
+            # Build input
+            cd stage && ./$problemname.bin && cp $problemname.in ../tests/$problemname-$nr.in && cd ..
 
-        # Clean stage
-        rm stage/*
+            # Clean stage
+            rm stage/*
+        fi
 
         ###################
         # Build ok
         ###################
 
         # Build ok generator
-        try "cd okgen && make -s && cd .." "ok generator build fil"
+        cd okgen && make -s && cd ..
 
         # Copy ok generator and input into stage
         cp okgen/okgen.bin stage/$problemname.bin
@@ -76,7 +82,7 @@ cat testmanifest | while read instr; do
         echo $points > stage/$problemname.points
 
         # Build ok
-        try "cd stage && ./$problemname.bin && cd .." "ok generation fail"
+        cd stage && ./$problemname.bin && cd ..
 
         # Copy ok from stage into tests
         cp stage/$problemname.ok tests/$problemname-$nr.ok
@@ -89,4 +95,8 @@ cat testmanifest | while read instr; do
     currtest=$(($currtest + $numberoftests))
 done
 
-zip -r oldtests/$testrevision.zip tests/*
+if [[ $testrevision = "" ]] ; then
+    :
+else
+    zip -r oldtests/$testrevision.zip tests/*
+fi
