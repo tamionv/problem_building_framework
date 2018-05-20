@@ -22,3 +22,56 @@ maybecp () {
         touch $2
     fi
 }
+
+# Evaluates whatever is in the stage, and returns: the time used in $1, the evaluation result in $2, the points in $3
+evaluate_stage () {
+    # Get an appropriate timeout command
+    timeoutCommand=timeout
+
+    if [[ "$OSTYPE" == "darwin"* ]] ; then
+        timeoutCommand=gtimeout
+    fi
+
+    # Get the problem name and the time limit
+    try "problemname=`cat problemname`" "no problemname file"
+    try "timelimit=`cat timelimit`" "no timelimit file"
+
+    # This string runs the competitor's executable
+    runExec="./$problemname.bin > /dev/null 2> /dev/null"
+
+    # This string runs the competitors executable with an appropriate timeout
+    runExecWithTimeout="$timeoutCommand $timelimit $runExec"
+
+    # Run the competitors executable with a timeout, and store the time used in timeUsed
+    timeUsed=$(cd stage && { time $runExecWithTimeout ; } 2>&1 >/dev/null \
+        | tail -3 \
+        | head -1 \
+        | awk -F ' ' '{print $2}' \
+        | awk -F 'm' '{print $2}' \
+        | awk -F 's' '{print $1}' && cd ..) 
+
+    if (( $(echo "$timeUsed > $timelimit" | bc -l))) ; then
+        # Set the return values
+        eval $1=$timeUsed
+        eval $2=TLE
+        eval $3=0
+    else
+        # Copy the evaluator into the stage
+        cp eval/eval.bin stage/eval.bin
+
+        # Copy the ok file into the stage
+        cp tests/$testname.ok stage/$problemname.ok
+
+        # Create temporary files to hold the points and the eval message
+        points=`mktemp`
+        message=`mktemp`
+
+        # Enter the stage and evaluate, storing the results in $points and $message
+        try "cd stage && ./eval.bin > $points 2> $message && cd .." "eval error"
+
+        # Set the return values
+        eval "$1="$timeUsed""
+        eval "$2=`cat $message`"
+        eval "$3=`cat $points`"
+    fi
+}

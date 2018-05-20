@@ -17,7 +17,7 @@
 source lib.sh
 
 # make stage (as git deletes it)
-mkdir stage
+mkdir -p stage
 
 # Get an appropriate timeout command
 timeoutCommand=timeout
@@ -72,6 +72,8 @@ if [ -z "$tests" ] ; then
     tests=`ls -1 tests | grep .in | awk -F '.' '{print $1}'`
 fi
 
+tests=`echo $tests | sort -t '-' -k 1 -n`
+
 
 ###########################
 # EVALUATING
@@ -96,6 +98,9 @@ for src in $srcs ; do
 
     # For all tests
     for testname in $tests ; do
+        # clear any previous messages
+        echo -en "                                      \r"
+
         # Output an appropriate messgae
         echo -en "Doing $testname\r"
 
@@ -107,40 +112,14 @@ for src in $srcs ; do
 
         # Copy the input into the stage
         cp tests/$testname.in stage/$problemname.in
+        
+        #timeUsed=""
+        #message=""
+        #points=""
 
-        # This string runs the competitor's executable
-        runExec="./$problemname.bin > /dev/null 2> /dev/null"
+        evaluate_stage timeUsed message points
 
-        # This string runs the competitors executable with an appropriate timeout
-        runExecWithTimeout="$timeoutCommand $timelimit $runExec"
-
-        # Run the competitors executable with a timeout, and store the time used in timeUsed
-        timeUsed=$(cd stage && { time $runExecWithTimeout ; } 2>&1 >/dev/null \
-            | head -2 \
-            | awk -F ' ' '{print $2}' \
-            | awk -F 'm' '{print $2}' \
-            | awk -F 's' '{print $1}' && cd ..)
-
-        if (( $(echo "$timeUsed > $timelimit" | bc -l))) ; then
-            # Print that this testcase resulted in a TLE
-            echo $testname TLE $timeUsed 0 >> $table
-        else
-            # Copy the evaluator into the stage
-            cp eval/eval.bin stage/eval.bin
-
-            # Copy the ok file into the stage
-            cp tests/$testname.ok stage/$problemname.ok
-
-            # Create temporary files to hold the points and the eval message
-            points=`mktemp`
-            message=`mktemp`
-
-            # Enter the stage and evaluate, storing the results in $points and $message
-            try "cd stage && ./eval.bin > $points 2> $message && cd .." "eval error"
-
-            # Add the relevant information into the table
-            echo $testname `cat $message` $timeUsed `cat $points` >> $table
-        fi
+        echo $testname.in $message $timeUsed $points >> $table
     done
 
     # Clear "Doing test ..."

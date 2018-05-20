@@ -4,11 +4,13 @@ using namespace std;
 
 int main(){
     ifstream f("aplusb.cf");
-    if(!f){
+    ofstream g("aplusb.in");
+    bool fixed;
+    int x, y;
+    f >> fixed >> x >> y;
+
+    if(fixed) g << x << ' ' << y << endl;
+    else{
         srand(time(nullptr));
-        cout << rand() << ' ' << rand() << endl; }
-    else {
-        int x;
-        f >> x;
-        cout <<  x << ' ' << x << endl; }
+        g << rand() << ' ' << rand() << endl; }
     return 0; }
