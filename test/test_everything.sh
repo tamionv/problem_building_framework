@@ -16,7 +16,7 @@ cd $project_directory/aplusb
 output_file=`mktemp`
 
 echo Running sources
-echo first | ./buildtests
+echo | ./buildtests
 ./run
 
 echo Cleanup

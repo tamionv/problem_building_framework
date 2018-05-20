@@ -95,8 +95,6 @@ cat testmanifest | while read instr; do
     currtest=$(($currtest + $numberoftests))
 done
 
-if [[ $testrevision = "" ]] ; then
-    :
-else
+if [ -n $testrevision ] ; then
     zip -r oldtests/$testrevision.zip tests/*
 fi
