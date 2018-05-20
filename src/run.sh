@@ -90,7 +90,7 @@ for src in $srcs ; do
     done
 
     # Clear "Doing test ..."
-    echo -en "                               \r"
+    echo -en "\r                               \r"
 
     # Output the table
     column -t $table

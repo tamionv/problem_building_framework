@@ -1,0 +1,25 @@
+0
+1
+2
+3
+ok.cpp                                
+Test         Message  Time   Points
+aplusb-0.in  OK       0.030  10
+aplusb-1.in  OK       0.011  30
+aplusb-2.in  OK       0.013  30
+aplusb-3.in  OK       0.014  30
+SCORE: 100
+tle.cpp                               
+Test         Message  Time   Points
+aplusb-0.in  TLE      1.013  0
+aplusb-1.in  TLE      1.013  0
+aplusb-2.in  TLE      1.013  0
+aplusb-3.in  TLE      1.015  0
+SCORE: 0
+wa.cpp                                
+Test         Message  Time   Points
+aplusb-0.in  WA       0.012  0
+aplusb-1.in  WA       0.014  0
+aplusb-2.in  WA       0.020  0
+aplusb-3.in  WA       0.009  0
+SCORE: 0

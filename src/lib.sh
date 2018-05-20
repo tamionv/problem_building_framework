@@ -39,7 +39,7 @@ evaluate_src_test () {
     source problemconfig.sh
 
     # clear any previous messages
-    echo -en "                                      \r"
+    echo -en "\r                                      \r"
 
     # Output an appropriate messgae
     echo -en "Doing $testname\r"
