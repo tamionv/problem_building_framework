@@ -23,14 +23,35 @@ maybecp () {
     fi
 }
 
-# Evaluates whatever is in the stage, and returns: the time used in $1, the evaluation result in $2, the points in $3
-evaluate_stage () {
+# Evaluates the binary $1 with test $2, returning the message in $message, the time used in $timeUsed and the points in $points
+evaluate_src_test () {
+    binary=$1
+    testname=$2
+
     # Get an appropriate timeout command
     timeoutCommand=timeout
 
     if [[ "$OSTYPE" == "darwin"* ]] ; then
         timeoutCommand=gtimeout
     fi
+
+    # Fetch the problem configuration
+    source problemconfig.sh
+
+    # clear any previous messages
+    echo -en "                                      \r"
+
+    # Output an appropriate messgae
+    echo -en "Doing $testname\r"
+
+    # Clean the stage
+    rm stage/*
+
+    # Copy the binary into the stage
+    cp $binary stage/$problemname.bin
+
+    # Copy the input into the stage
+    cp tests/$testname.in stage/$problemname.in
 
     # Get the problem config
     source problemconfig.sh
@@ -51,10 +72,13 @@ evaluate_stage () {
 
     if (( $(echo "$timeUsed > $timelimit" | bc -l))) ; then
         # Set the return values
-        eval $1=$timeUsed
-        eval $2=TLE
-        eval $3=0
+        # timeUsed is already set
+        message=TLE
+        points=0
     else
+        # Make the evaluator
+        try "cd eval && make -s && cd .." "evaluator build fail"
+
         # Copy the evaluator into the stage
         cp eval/eval.bin stage/eval.bin
 
@@ -62,15 +86,15 @@ evaluate_stage () {
         cp tests/$testname.ok stage/$problemname.ok
 
         # Create temporary files to hold the points and the eval message
-        points=`mktemp`
-        message=`mktemp`
+        pointsFile=`mktemp`
+        messageFile=`mktemp`
 
-        # Enter the stage and evaluate, storing the results in $points and $message
-        try "cd stage && ./eval.bin > $points 2> $message && cd .." "eval error"
+        # Enter the stage and evaluate, storing the results in $pointsFile and $messageFile
+        try "cd stage && ./eval.bin > $pointsFile 2> $messageFile && cd .." "eval error"
 
         # Set the return values
-        eval "$1="$timeUsed""
-        eval "$2=`cat $message`"
-        eval "$3=`cat $points`"
+        # timeUsed is already set
+        points=`cat $pointsFile`
+        message=`cat $messageFile`
     fi
 }

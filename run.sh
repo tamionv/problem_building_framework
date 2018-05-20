@@ -22,19 +22,6 @@ source problemconfig.sh
 # make stage (as git deletes it)
 mkdir -p stage
 
-# Get an appropriate timeout command
-timeoutCommand=timeout
-
-if [[ "$OSTYPE" == "darwin"* ]] ; then
-    timeoutCommand=gtimeout
-fi
-
-# Make the evaluator
-try "cd eval && make -s && cd .." "evaluator build fail"
-
-# Copy the evaluator into the stage
-cp eval/eval.bin stage/eval.bin
-
 ############################
 # ARGUMENT PARSING
 #############################
@@ -97,27 +84,8 @@ for src in $srcs ; do
 
     # For all tests
     for testname in $tests ; do
-        # clear any previous messages
-        echo -en "                                      \r"
-
-        # Output an appropriate messgae
-        echo -en "Doing $testname\r"
-
-        # Clean the stage
-        rm stage/*
-
-        # Copy the executable into the stage
-        cp $binary stage/$problemname.bin
-
-        # Copy the input into the stage
-        cp tests/$testname.in stage/$problemname.in
-        
-        #timeUsed=""
-        #message=""
-        #points=""
-
-        evaluate_stage timeUsed message points
-
+        # evaluate $binary on $testname, setting $message, $timeUsed, $points
+        evaluate_src_test $binary $testname
         echo $testname.in $message $timeUsed $points >> $table
     done
 
