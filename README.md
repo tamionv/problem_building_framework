@@ -5,8 +5,7 @@ File descriptions:
 
 README.md | This readme
 --------- | -----------
-problemname | A file that should contain exactly the problem name
-timelimit | A file that should contain the time limit, in seconds
+problemconfig.sh | A script that sets problem configuration variables (i.e. $problemname, $timelimit)
 lib.sh | A bash library, used for the scripts in this bundle
 run.sh | ./run.sh -s "s1.cpp s2.cpp" -t "00 01" will run s1.cpp, s2.cpp on 00, 01 -- ommiting -s or -t respectively leads to running all sources / all tests
 buildtests.sh | ./buildtests.sh will build all tests following testmanifest

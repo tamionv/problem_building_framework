@@ -32,9 +32,8 @@ evaluate_stage () {
         timeoutCommand=gtimeout
     fi
 
-    # Get the problem name and the time limit
-    try "problemname=`cat problemname`" "no problemname file"
-    try "timelimit=`cat timelimit`" "no timelimit file"
+    # Get the problem config
+    source problemconfig.sh
 
     # This string runs the competitor's executable
     runExec="./$problemname.bin > /dev/null 2> /dev/null"

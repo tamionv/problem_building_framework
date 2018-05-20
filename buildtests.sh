@@ -6,8 +6,8 @@
 # include the library
 source lib.sh
 
-# Get problem name
-problemname=`cat problemname`
+# include the configuration
+source problemconfig.sh
 
 # Make stage (as git deletes it)
 mkdir -p stage

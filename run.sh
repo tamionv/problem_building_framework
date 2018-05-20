@@ -16,6 +16,9 @@
 # include the library
 source lib.sh
 
+# include the configuration
+source problemconfig.sh
+
 # make stage (as git deletes it)
 mkdir -p stage
 
@@ -25,10 +28,6 @@ timeoutCommand=timeout
 if [[ "$OSTYPE" == "darwin"* ]] ; then
     timeoutCommand=gtimeout
 fi
-
-# Get the problem name and the time limit
-try "problemname=`cat problemname`" "no problemname file"
-try "timelimit=`cat timelimit`" "no timelimit file"
 
 # Make the evaluator
 try "cd eval && make -s && cd .." "evaluator build fail"
