@@ -23,8 +23,8 @@ maybecp () {
     fi
 }
 
-# Evaluates the binary $1 with test $2, returning the message in $message, the time used in $timeUsed and the points in $points
-evaluate_src_test () {
+# Run the binary $1 with test $2, returning the time used in timeUsed, and leaving the output file in stage/$problemname.out
+run_src_test () {
     binary=$1
     testname=$2
 
@@ -69,7 +69,14 @@ evaluate_src_test () {
         | awk -F ' ' '{print $2}' \
         | awk -F 'm' '{print $2}' \
         | awk -F 's' '{print $1}' && cd ..) 
+}
 
+# Evaluates the binary $1 with test $2, returning the message in $message, the time used in $timeUsed and the points in $points
+evaluate_src_test () {
+    binary=$1
+    testname=$2
+
+    run_src_test $binary $testname
     if (( $(echo "$timeUsed > $timelimit" | bc -l))) ; then
         # Set the return values
         # timeUsed is already set
