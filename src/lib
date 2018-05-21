@@ -23,6 +23,28 @@ maybecp () {
     fi
 }
 
+# Builds test number $1 with incf $2
+build_test_number () {
+    source problemconfig
+
+    nr=$1
+    incf=$2
+
+    # Build input generator
+    cd ingen && make -s && cd ..
+
+    # Copy ingen/ingen.bin and incf/$1 into stage
+    cp ingen/ingen.bin stage/$problemname.bin
+    cp incf/$incf stage/$problemname.cf
+
+    # Build input
+    cd stage && ./$problemname.bin && cp $problemname.in ../tests/$problemname-$nr.in && cd ..
+
+    # Clean stage
+    rm stage/* 2> /dev/null
+
+}
+
 # Run the binary $1 with test $2, returning the time used in timeUsed, and leaving the output file in stage/$problemname.out
 run_src_test () {
     binary=$1
@@ -45,7 +67,7 @@ run_src_test () {
     echo -en "Doing $testname\r"
 
     # Clean the stage
-    rm stage/*
+    rm stage/* 2> /dev/null
 
     # Copy the binary into the stage
     cp $binary stage/$problemname.bin

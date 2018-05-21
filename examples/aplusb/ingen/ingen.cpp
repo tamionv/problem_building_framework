@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
 using namespace std;
 
 int main(){
@@ -8,12 +9,12 @@ int main(){
     bool fixed;
     int x, y;
     f >> fixed >> x >> y;
-    cout << fixed << ' ' << x << ' ' << y << endl;
 
     if(fixed){
         g << x << ' ' << y << endl;
     }
     else{
-        srand(time(nullptr));
+        unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+        srand(seed1);
         g << rand() << ' ' << rand() << endl; }
     return 0; }

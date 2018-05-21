@@ -53,18 +53,7 @@ cat testmanifest | while read instr; do
         #################
 
         if [ $rebuild_inputs = true ] ; then
-            # Build input generator
-            cd ingen && make -s && cd ..
-
-            # Copy ingen/ingen.bin and incf/$1 into stage
-            cp ingen/ingen.bin stage/$problemname.bin
-            cp incf/$incf stage/$problemname.cf
-
-            # Build input
-            cd stage && ./$problemname.bin && cp $problemname.in ../tests/$problemname-$nr.in && cd ..
-
-            # Clean stage
-            rm stage/*
+            build_test_number $nr $incf
         fi
 
         ###################

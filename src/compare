@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# compare -s "s1 s2" -s s3 -c "c1 c2" -c c3 compares sources s1, s2, s3 with configurations c1 c2 c3 until they diverge
+# Tamio-Vesa Nakajima
+
+source lib
+source problemconfig
+
+srcs=""
+configs=""
+
+while getopts "hs:c:" opt ; do
+    case $opt in
+        h)
+            echo "Usage: ./compare -s \"source1\" -s \"source2\" -c \"config1\" \"config2\""
+            exit 0
+            ;;
+        s)
+            srcs="$srcs $OPTARG"
+            ;;
+        c)
+            configs="$configs $OPTARG"
+            ;;
+    esac
+done
+
+if [ -z "$srcs" ] ; then
+    echo No sources provided
+    exit 1
+fi
+
+if [ -z "$configs" ] ; then
+    echo No configs provided
+    exit 1
+fi
+
+srcs_arr=($srcs)
+nr_srcs=${#srcs_arr[@]}
+outputs_arr=()
+binary_arr=()
+input_file=`mktemp`
+
+for i in `seq 0 $(($nr_srcs-1))` ; do
+    outputs_arr[$i]=`mktemp`
+    binary_arr[$i]=`mktemp`
+done
+
+for i in `seq 0 $(($nr_srcs-1))` ; do
+    g++ src/${srcs_arr[$i]} -std=c++11 -O2 -o ${binary_arr[$i]}
+done
+
+curr_test=0
+
+path_to_tests=`realpath tests`
+trap "rm $path_to_tests/$problemname-999.in" EXIT
+
+while : ; do
+    for conf in $configs ; do
+        rm stage/* 2> /dev/null
+        echo -en "                        \r"
+        echo Doing test $curr_test
+        curr_test=$(($curr_test + 1))
+
+        build_test_number 999 $conf
+
+        hasTle=false
+
+        for i in `seq 0 $(($nr_srcs-1))` ; do
+            run_src_test ${binary_arr[$i]} $problemname-999
+
+            if (( $(echo "$timeUsed > $timelimit" | bc -l ) )) ; then
+                hasTle=true
+            fi
+
+            cp stage/$problemname.out ${outputs_arr[$i]}
+        done
+        if [ $hasTle = true ] || ! diff --from-file ${outputs_arr[*]} > /dev/null ; then
+            echo -en "                           \r"
+            echo Has failed on:
+            cat tests/$problemname-999.in
+            echo With outputs:
+            for i in `seq 0 $(($nr_srcs-1))` ; do
+                echo ${srcs_arr[$i]}:
+                cat ${outputs_arr[$i]}
+                echo
+            done
+            exit 0
+        fi
+    done
+done
