@@ -3,6 +3,9 @@
 # This builds all tests using testmanifest
 # Tamio-Vesa Nakajima
 
+# include the library
+source lib
+
 # include the configuration
 source problemconfig
 
@@ -43,16 +46,38 @@ cat testmanifest | while read instr; do
     totalpoints=$3
     points=$(($totalpoints / $numberoftests))
 
-    for nr in `seq $currtest $(($currtest + $numberoftests - 1))`
-    do
-        echo $nr >&2
+    for nr in `seq $currtest $(($currtest + $numberoftests - 1))` ; do
+        echo $nr
+        #################
+        # Build input:
+        #################
 
-        if [ $rebuild_inputs = true ]
-        then
+        if [ $rebuild_inputs = true ] ; then
             ./lib/build_test_number $nr $incf
         fi
 
-        ./lib/build_ok_number $nr $points
+        ###################
+        # Build ok
+        ###################
+
+        # Build ok generator
+        cd okgen && make -s && cd ..
+
+        # Copy ok generator and input into stage
+        cp okgen/okgen.bin stage/$problemname.bin
+        cp tests/$problemname-$nr.in stage/$problemname.in
+
+        # Indicate the number of points in the stage
+        echo $points > stage/$problemname.points
+
+        # Build ok
+        cd stage && ./$problemname.bin && cd ..
+
+        # Copy ok from stage into tests
+        cp stage/$problemname.ok tests/$problemname-$nr.ok
+
+        # Clean stage
+        rm stage/*
     done
 
     #update currtest

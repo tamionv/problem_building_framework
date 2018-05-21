@@ -13,6 +13,9 @@
 # GENERAL SETUP
 #########################
 
+# include the library
+source lib
+
 # include the configuration
 source problemconfig
 
@@ -31,7 +34,7 @@ tests=""
 while getopts "hs:t:" opt; do
     case $opt in
         h)
-            echo "Usage: ./run -s [source] -t [test]" >&2
+            echo "Usage: ./run -s [source] -t [test]"
             exit 0
             ;;
         s)
@@ -82,22 +85,18 @@ for src in $srcs ; do
     # For all tests
     for testname in $tests ; do
         # evaluate $binary on $testname, setting $message, $timeUsed, $points
-        set "$(./lib/evaluate_src_test $binary $testname)"
-        message=$1
-        timeUsed=$2
-        points=$3
-
+        ./lib/evaluate_src_test $binary $testname
         echo $testname.in $message $timeUsed $points >> $table
     done
 
     # Clear "Doing test ..."
-    echo -en "\r                               \r" >&2
+    echo -en "\r                               \r"
 
     # Output the table
     column -t $table
 
     # Calculate the score
-    echo SCORE: `awk -F ' ' '$1 != "Test" {sum += 0 $4} END {print sum}' $table` >&2
+    echo SCORE: `awk -F ' ' '$1 != "Test" {sum += 0 $4} END {print sum}' $table`
 
     # Clear the temporary files
     rm $table

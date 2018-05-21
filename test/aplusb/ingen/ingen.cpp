@@ -11,6 +11,7 @@ int main(){
 
     if(fixed) g << x << ' ' << y << endl;
     else{
-        srand(time(nullptr));
+        unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+        srand(seed1);
         g << rand() << ' ' << rand() << endl; }
     return 0; }

@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+
+source problemconfig
+
+nr=$1
+points=$2
+
+# Build ok generator
+cd okgen && make -s && cd ..
+
+# make a stage
+stage=$(mktemp -d)
+
+# Copy ok generator and input into stage
+cp okgen/okgen.bin $stage/$problemname.bin
+cp tests/$problemname-$nr.in $stage/$problemname.in
+
+# Indicate the number of points in the stage
+echo $points > $stage/$problemname.points
+
+# Build ok
+currdir=$PWD
+cd $stage && ./$problemname.bin && cd $currdir
+
+# Copy ok from stage into tests
+cp $stage/$problemname.ok tests/$problemname-$nr.ok
+
+# Clean stage
+rm -rf $stage
