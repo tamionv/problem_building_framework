@@ -1,8 +1,9 @@
 #!/bin/bash
 #
-# Run the binary $1 with test $2, returning the time used stdout, and leaving the output file in $problemname.out
-binary=$1
-testname=$2
+# Run the binary $2 with test $3, returning the time used stdout, and leaving the output file in $1
+output_location="$1"
+binary=$2
+testname=$3
 
 # include the configuration
 problemname=""
@@ -42,20 +43,21 @@ cp "tests/$testname.in" "$stage/$problemname.in"
 runExec="./$problemname.bin > /dev/null 2> /dev/null"
 
 # This string runs the competitors executable with an appropriate timeout
-runExecWithTimeout="$timeoutCommand $timelimit $runExec"
+runExecWithTimeout=" 
+$timeoutCommand $timelimit $runExec"
 
 # Run the competitors executable with a timeout, and store the time used in timeUsed
 curr_dirr=$PWD
 cd "$stage" || exit
 timeUsed=$({ time $runExecWithTimeout ; } 2>&1 >/dev/null \
-    | tail -3 \
-    | head -1 \
-    | awk -F ' ' '{print $2}' \
+    | awk -F ' ' '{ if($1=="user" || $1 == "sys") { print $2 } }' \
     | awk -F 'm' '{print $2}' \
-    | awk -F 's' '{print $1}')
+    | awk -F 's' '{print $1}' \
+    | awk 'BEGIN { total = 0; } { total += $1; } END { print total; }' )
 cd "$curr_dirr" || exit
 
-cp "$stage/$problemname.out" . 2> /dev/null
+
+cp "$stage/$problemname.out" "$output_location" 2> /dev/null
 
 echo "$timeUsed"
 

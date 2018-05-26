@@ -23,7 +23,6 @@ touch "$1/$problemname/eval/makefile"
 touch "$1/$problemname/incf/makefile"
 touch "$1/$problemname/ingen/makefile"
 touch "$1/$problemname/okgen/makefile"
-touch "$1/$problemname/src/makefile"
 
 cp -r ./bin/* "$1/$problemname"
 

@@ -78,13 +78,11 @@ while : ; do
         hasTle=false
 
         for((i=0; i<nr_srcs; i++)) ; do
-            timeUsed=$(./lib/run_src_test "${binary_arr[$i]}" "$problemname-999")
+            timeUsed=$(./lib/run_src_test "${outputs_arr[$i]}" "${binary_arr[$i]}" "$problemname-999")
 
             if (( $(echo "$timeUsed > $timelimit" | bc -l ) )) ; then
                 hasTle=true
             fi
-
-            cp "$problemname.out" "${outputs_arr[$i]}"
         done
 
         # shellcheck disable=SC2086

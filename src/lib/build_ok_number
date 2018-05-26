@@ -16,11 +16,6 @@ fi
 nr="$1"
 points="$2"
 
-# Build ok generator
-cd okgen || exit
-make -s
-cd .. || exit
-
 # make a stage
 stage=$(mktemp -d)
 

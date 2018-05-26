@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Tamio-Vesa Nakajima
+# Evaluates the binary $1 with test $2, returning the message in $message, the time used in $timeUsed and the points in $points
 
 # include the configuration
 problemname=""
@@ -14,17 +15,17 @@ if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
     exit 1
 fi
 
-# Evaluates the binary $1 with test $2, returning the message in $message, the time used in $timeUsed and the points in $points
 binary=$1
 testname=$2
-timeUsed=$(./lib/run_src_test "$binary" "$testname")
+output_location=$(mktemp)
+timeUsed=$(./lib/run_src_test "$output_location" "$binary" "$testname")
 
 if (( $(echo "$timeUsed > $timelimit" | bc -l))) ; then
     # Set the return values
     # timeUsed is already set
     message=TLE
     points=0
-elif [ ! -e  "$problemname.out" ] ; then
+elif [ ! -e  "$output_location" ] ; then
     message="MissingOutput"
     points=0
 else
@@ -32,10 +33,7 @@ else
     stage=$(mktemp -d)
 
     # Move output into stage
-    mv "$problemname.out" "$stage"
-
-    # Make the evaluator
-    cd eval && make -s && cd ..
+    mv "$output_location" "$stage/$problemname.out"
 
     # Copy the evaluator into the stage
     cp eval/eval.bin "$stage/eval.bin"

@@ -4,6 +4,22 @@
 # Tamio-Vesa Nakajima
 
 #################################
+# Build necesisties
+#################################
+
+cd eval || exit
+make -s
+cd .. || exit
+
+cd okgen || exit
+make -s
+cd .. || exit
+
+cd ingen || exit
+make -s
+cd .. || exit
+
+#################################
 # PROBLEM CONFIGURATION
 #################################
 
@@ -55,11 +71,10 @@ done
 # Get test revision name
 read -p "Name of this test revision: " -r testrevision
 
-
 # For all lines of the test manifest:
 currtest=0
 while read -r instr; do
-    # Parse a line of testmanifest, puttin
+    # Parse a line of testmanifest
 
     # shellcheck disable=SC2086
     set $instr
@@ -67,29 +82,29 @@ while read -r instr; do
     incf=$2
     totalpoints=$3
 
-
     # Get the number of points per test
     points=$((totalpoints / numberoftests))
 
     # For all tests of this kind:
-    for ((nr=$"currtest"; nr<"$currtest"+"$numberoftests" ; nr++))
-    do
-        # Print diagnosting message
-        echo Building test $nr >&2
+    for ((nr=$"currtest"; nr<"$currtest"+"$numberoftests" ; nr++)) ; do
+        (
+        echo Building test "$nr"
 
-        # Building the inputs
-        if [ $rebuild_inputs = true ]
-        then
+        if [ $rebuild_inputs = true ] ; then
             ./lib/build_test_number "$nr" "$incf"
         fi
 
-        # Building the ok
         ./lib/build_ok_number "$nr" "$points"
+
+        echo Done test "$nr"
+        ) &
     done
 
     #update currtest
     currtest=$((currtest + numberoftests))
 done < testmanifest
+
+wait
 
 # Store this revision in oldtests
 if [ -n "$testrevision" ] ; then
