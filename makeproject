@@ -24,7 +24,7 @@ touch "$1/$problemname/incf/makefile"
 touch "$1/$problemname/ingen/makefile"
 touch "$1/$problemname/okgen/makefile"
 
-cp -r ./bin/* "$1/$problemname"
+cp -r ./src/* "$1/$problemname"
 
 touch "$1/$problemname/testmanifest"
 
