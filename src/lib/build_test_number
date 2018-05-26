@@ -2,7 +2,19 @@
 #
 # Tamio-Vesa Nakajima
 # Builds test number $1 with incf $2
+
+
+# include the configuration
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
 source problemconfig
+
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
 
 nr=$1
 incf=$2
@@ -14,12 +26,15 @@ cd ingen && make -s && cd ..
 stage=$(mktemp -d)
 
 # Copy ingen/ingen.bin and incf/$1 into stage
-cp ingen/ingen.bin $stage/$problemname.bin
-cp incf/$incf $stage/$problemname.cf
+cp ingen/ingen.bin "$stage/$problemname.bin"
+cp "incf/$incf" "$stage/$problemname.cf"
 
 # Build input
 currdir=$PWD
-cd $stage && ./$problemname.bin && cp $problemname.in $currdir/tests/$problemname-$nr.in && cd $currdir
+cd "$stage" || exit
+./"$problemname.bin"
+cp "$problemname.in" "$currdir/tests/$problemname-$nr.in"
+cd "$currdir" || exit
 
 # Clean stage
-rm -rf $stage
+rm -rf "$stage"

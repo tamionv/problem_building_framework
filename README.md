@@ -24,7 +24,6 @@ eval/makefile | A file that needs to make the evaluator, eval/eval.bin
 eval/eval.bin | A file that evaluates. It will read the input file from *problemname*.in, the output file from *problemname*.out, the ok file from *problemname*.ok. It will write the score to *stdout* and the evaluation message to *stderr*.
 tests | Holds tests
 oldtests | Holds old revisions of tests
-stage | Where evaluation happens
 
 testmanifest format:
 

@@ -16,9 +16,6 @@
 # include the configuration
 source problemconfig
 
-# make stage (as git deletes it)
-mkdir -p stage
-
 ############################
 # ARGUMENT PARSING
 #############################
@@ -44,6 +41,10 @@ while getopts "hs:t:" opt; do
                 tests="$tests $problemname-$x"
             done
             ;;
+        *)
+            echo Bad option
+            exit 1
+            ;;
     esac
 done
             
@@ -63,14 +64,20 @@ tests=`echo $tests | sort -t '-' -k 1 -n`
 ##########################
 
 for src in $srcs ; do
+    # Make a stage
+    stage=$(mktemp -d)
+
     # Copy the source into the stage
-    cp src/$src stage/$problemname.cpp
+    cp src/$src $stage/$problemname.cpp
 
     # Create a temporary file to hold the problem binary
     binary=`mktemp`
 
     # Build the source
-    g++ stage/$problemname.cpp -std=c++11 -o $binary -O2
+    g++ $stage/$problemname.cpp -std=c++11 -o $binary -O2
+
+    # Delete the stage
+    rm -rf $stage
 
     # Make a temporary file to hold the table:
     table=`mktemp`
@@ -103,6 +110,4 @@ for src in $srcs ; do
     rm $table
     rm $binary
 
-    # And the stage
-    rm stage/*
 done

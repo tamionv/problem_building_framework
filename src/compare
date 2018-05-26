@@ -3,7 +3,16 @@
 # compare -s "s1 s2" -s s3 -c "c1 c2" -c c3 compares sources s1, s2, s3 with configurations c1 c2 c3 until they diverge
 # Tamio-Vesa Nakajima
 
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
 source problemconfig
+
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
 
 srcs=""
 configs=""
@@ -20,6 +29,10 @@ while getopts "hs:c:" opt ; do
         c)
             configs="$configs $OPTARG"
             ;;
+        *)
+            echo Bad options
+            exit 1
+            ;;
     esac
 done
 
@@ -33,52 +46,54 @@ if [ -z "$configs" ] ; then
     exit 1
 fi
 
-srcs_arr=($srcs)
+# shellcheck disable=SC2086
+srcs_arr=()
+read -a srcs_arr -r <<< "$srcs"
 nr_srcs=${#srcs_arr[@]}
 outputs_arr=()
 binary_arr=()
-input_file=`mktemp`
 
-for i in `seq 0 $(($nr_srcs-1))` ; do
-    outputs_arr[$i]=`mktemp`
-    binary_arr[$i]=`mktemp`
+for ((i=0; i<nr_srcs; i++)) ; do
+    outputs_arr[$i]=$(mktemp)
+    binary_arr[$i]=$(mktemp)
 done
 
-for i in `seq 0 $(($nr_srcs-1))` ; do
-    g++ src/${srcs_arr[$i]} -std=c++11 -O2 -o ${binary_arr[$i]}
+for ((i=0; i<nr_srcs; i++)) ; do
+    g++ "src/${srcs_arr[$i]}" -std=c++11 -O2 -o "${binary_arr[$i]}"
 done
 
 curr_test=0
 
-path_to_tests=`realpath tests`
-trap "rm $path_to_tests/$problemname-999.in" EXIT
+path_to_tests=$(realpath tests)
+trap 'rm $path_to_tests/$problemname-999.in' EXIT
 
 while : ; do
     for conf in $configs ; do
-        rm stage/* 2> /dev/null
-        echo -en "                        \r" >&2
+        echo -en "                        \\r" >&2
         echo Doing test $curr_test >&2
-        curr_test=$(($curr_test + 1))
+        curr_test=$((curr_test + 1))
 
-        ./lib/build_test_number 999 $conf
+        ./lib/build_test_number 999 "$conf"
 
         hasTle=false
 
-        for i in `seq 0 $(($nr_srcs-1))` ; do
-            timeUsed=$(./lib/run_src_test ${binary_arr[$i]} $problemname-999)
+        for((i=0; i<nr_srcs; i++)) ; do
+            timeUsed=$(./lib/run_src_test "${binary_arr[$i]}" "$problemname-999")
 
             if (( $(echo "$timeUsed > $timelimit" | bc -l ) )) ; then
                 hasTle=true
             fi
 
-            cp stage/$problemname.out ${outputs_arr[$i]}
+            cp "$problemname.out" "${outputs_arr[$i]}"
         done
+
+        # shellcheck disable=SC2086
         if [ $hasTle = true ] || ! diff --from-file ${outputs_arr[*]} > /dev/null ; then
-            echo -en "                           \r" >&2
+            echo -en "                           \\r" >&2
             echo Has failed on: >&2
             cat tests/$problemname-999.in
             echo With outputs: >&2
-            for i in `seq 0 $(($nr_srcs-1))` ; do
+            for((i=0 ; i<nr_srcs; i++)) ; do
                 echo ${srcs_arr[$i]}: >&2
                 cat ${outputs_arr[$i]}
                 echo >&2

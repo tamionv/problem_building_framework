@@ -3,31 +3,31 @@
 # Makes a project in $1
 
 # Get problem configuration
-read -p "Problem name name: " problemname
-read -p "Time limit: " timelimit
+read -p "Problem name name: " -r problemname
+read -p "Time limit: " -r timelimit
 
 # Make project directory
-mkdir $1/$problemname
+mkdir "$1/$problemname"
 
 # Make project structure
-mkdir $1/$problemname/eval
-mkdir $1/$problemname/incf
-mkdir $1/$problemname/ingen
-mkdir $1/$problemname/okgen
-mkdir $1/$problemname/src
-mkdir $1/$problemname/tests
-mkdir $1/$problemname/stage
-mkdir $1/$problemname/oldtests
+mkdir "$1/$problemname/eval"
+mkdir "$1/$problemname/incf"
+mkdir "$1/$problemname/ingen"
+mkdir "$1/$problemname/okgen"
+mkdir "$1/$problemname/src"
+mkdir "$1/$problemname/tests"
+mkdir "$1/$problemname/stage"
+mkdir "$1/$problemname/oldtests"
 
-touch $1/$problemname/eval/makefile
-touch $1/$problemname/incf/makefile
-touch $1/$problemname/ingen/makefile
-touch $1/$problemname/okgen/makefile
-touch $1/$problemname/src/makefile
+touch "$1/$problemname/eval/makefile"
+touch "$1/$problemname/incf/makefile"
+touch "$1/$problemname/ingen/makefile"
+touch "$1/$problemname/okgen/makefile"
+touch "$1/$problemname/src/makefile"
 
-cp -r ./src/* $1/$problemname
+cp -r ./src/* "$1/$problemname"
 
-touch $1/$problemname/testmanifest
+touch "$1/$problemname/testmanifest"
 
-echo "problemname=$problemname" > $1/$problemname/problemconfig
-echo "timelimit=$timelimit" >> $1/$problemname/problemconfig
+echo "problemname=$problemname" > "$1/$problemname/problemconfig"
+echo "timelimit=$timelimit" >> "$1/$problemname/problemconfig"
