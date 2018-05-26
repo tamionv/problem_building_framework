@@ -3,13 +3,18 @@
 # This builds all tests using testmanifest
 # Tamio-Vesa Nakajima
 
-# include the configuration
+#################################
+# PROBLEM CONFIGURATION
+#################################
+
+# initialize problemconfig variables
 problemname=""
 timelimit=""
 
 # shellcheck disable=SC1091
 source problemconfig
 
+# Check if problemconfig variables are set
 if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
     echo Bad config file
     exit 1
@@ -23,57 +28,70 @@ rebuild_inputs=true
 
 while getopts "r:ho" opt; do
     case $opt in
-       h)
+        h)  # Help:
             echo "Usage: ./run -r(estore) [revision to restore]"
             exit 0
             ;;
-        r)
+        r)  # Restore old revision
             rm -r tests
             unzip "oldtests/$OPTARG.zip"
             exit 0
             ;;
-        o)
+        o)  # DO only the ok's again
             rebuild_inputs=false
             ;;
         *)
             echo "Bad options"
             exit 1
             ;;
- 
     esac
 done
 
+
+############################
+# Building tests
+############################
+
+# Get test revision name
 read -p "Name of this test revision: " -r testrevision
 
-# We will want to remember this:
-currtest=0
 
-# Loop over lines of 
+# For all lines of the test manifest:
+currtest=0
 while read -r instr; do
-    # Parse a line of testmanifest
+    # Parse a line of testmanifest, puttin
+
     # shellcheck disable=SC2086
     set $instr
     numberoftests=$1
     incf=$2
     totalpoints=$3
+
+
+    # Get the number of points per test
     points=$((totalpoints / numberoftests))
 
+    # For all tests of this kind:
     for ((nr=$"currtest"; nr<"$currtest"+"$numberoftests" ; nr++))
     do
-        echo $nr >&2
+        # Print diagnosting message
+        echo Building test $nr >&2
 
+        # Building the inputs
         if [ $rebuild_inputs = true ]
         then
             ./lib/build_test_number "$nr" "$incf"
         fi
 
-        ./lib/build_ok_number $nr $points
+        # Building the ok
+        ./lib/build_ok_number "$nr" "$points"
     done
 
     #update currtest
     currtest=$((currtest + numberoftests))
 done < testmanifest
 
+# Store this revision in oldtests
 if [ -n "$testrevision" ] ; then
     zip -r "oldtests/$testrevision.zip" tests/*
 fi
