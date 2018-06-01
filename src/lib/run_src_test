@@ -40,7 +40,7 @@ cp "$binary" "$stage/$problemname.bin"
 cp "tests/$testname.in" "$stage/$problemname.in"
 
 # This string runs the competitor's executable
-runExec="./$problemname.bin > /dev/null 2> /dev/null"
+runExec="./$problemname.bin"
 
 # This string runs the competitors executable with an appropriate timeout
 runExecWithTimeout=" 
