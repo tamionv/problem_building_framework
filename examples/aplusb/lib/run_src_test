@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# Run the binary $2 with test $3, returning the time used stdout, and leaving the output file in $1
+output_location="$1"
+binary=$2
+testname=$3
+
+# include the configuration
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
+source problemconfig
+
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
+
+# Get an appropriate timeout command
+timeoutCommand=timeout
+
+if [[ "$OSTYPE" == "darwin"* ]] ; then
+    timeoutCommand=gtimeout
+fi
+
+# clear any previous messages
+echo -en "\\r                                      \\r" >&2
+
+# Output an appropriate messgae
+echo -en "Doing $testname                    \\r" >&2
+
+# Make a stage
+stage=$(mktemp -d)
+
+# Copy the binary into the stage
+cp "$binary" "$stage/$problemname.bin"
+
+# Copy the input into the stage
+cp "tests/$testname.in" "$stage/$problemname.in"
+
+# This string runs the competitor's executable
+runExec="./$problemname.bin"
+
+# This string runs the competitors executable with an appropriate timeout
+runExecWithTimeout=" 
+$timeoutCommand $timelimit $runExec"
+
+# Run the competitors executable with a timeout, and store the time used in timeUsed
+curr_dirr=$PWD
+cd "$stage" || exit
+timeUsed=$({ time $runExecWithTimeout ; } 2>&1 >/dev/null \
+    | awk -F ' ' '{ if($1=="user" || $1 == "sys") { print $2 } }' \
+    | awk -F 'm' '{print $2}' \
+    | awk -F 's' '{print $1}' \
+    | awk 'BEGIN { total = 0; } { total += $1; } END { print total; }' )
+cd "$curr_dirr" || exit
+
+
+cp "$stage/$problemname.out" "$output_location" 2> /dev/null
+
+echo "$timeUsed"
+
+rm -rf "$stage"

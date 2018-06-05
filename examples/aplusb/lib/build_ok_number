@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+
+# include the configuration
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
+source problemconfig
+
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
+
+nr="$1"
+points="$2"
+
+# make a stage
+stage=$(mktemp -d)
+
+# Copy ok generator and input into stage
+cp okgen/okgen.bin "$stage/$problemname.bin"
+cp "tests/$problemname-$nr.in" "$stage/$problemname.in"
+
+# Indicate the number of points in the stage
+echo "$points" > "$stage/$problemname.points"
+
+# Build ok
+currdir=$PWD
+cd "$stage" || exit
+./"$problemname.bin"
+cd "$currdir" || exit
+
+# Copy ok from stage into tests
+cp "$stage/$problemname.ok" "tests/$problemname-$nr.ok"
+
+# Clean stage
+rm -rf "$stage"

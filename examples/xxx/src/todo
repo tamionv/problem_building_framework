@@ -1,9 +1,0 @@
-TODO:
-
-- make an evaluator (should read from $problemname.out and $problemname.ok, write the evaluation message to stderr and the # of points to cout
-- make an input generator (should read configuration from $problemname.cf and write the input to $problemname.in)
-- make an ok generator (should read the # of points from $problemname.points, the input from $problemname.in, and write to ok to $problemname.ok)
-- make a testmanifest (each line should contain a group of tests, described by the # of tests, the configuration file, and the # of points for that group)
-- call ./buildtests.sh
-- add source files to src
-- call ./run.sh

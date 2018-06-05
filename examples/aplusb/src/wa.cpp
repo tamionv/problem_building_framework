@@ -4,4 +4,5 @@ using namespace std;
 
 int main(){
     ofstream g("aplusb.out");
-    g << -1 << endl; }
+    g << -1;
+}

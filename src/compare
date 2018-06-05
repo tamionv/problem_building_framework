@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# compare -s "s1 s2" -s s3 -c "c1 c2" -c c3 compares sources s1, s2, s3 with configurations c1 c2 c3 until they diverge
+# compares sources
 # Tamio-Vesa Nakajima
 
 problemname=""
@@ -20,7 +20,9 @@ configs=""
 while getopts "hs:c:" opt ; do
     case $opt in
         h)
-            echo "Usage: ./compare -s \"source1\" -s \"source2\" -c \"config1\" \"config2\"" >&2
+            echo "Usage: ./compare -s SRC1 ... -s SRCn -c CONF1 ... -c CONFm"
+            echo "    -s SRC1 ... -s SRCn -- compares SRC1 to ... to SRCn"
+            echo "    -c CONF1 ... -s CONm -- using config files CONF1 ... CONFm"
             exit 0
             ;;
         s)

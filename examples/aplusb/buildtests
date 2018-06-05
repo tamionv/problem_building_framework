@@ -3,11 +3,38 @@
 # This builds all tests using testmanifest
 # Tamio-Vesa Nakajima
 
-# include the library
-source lib
+#################################
+# Build necesisties
+#################################
 
-# include the configuration
+cd eval || exit
+make -s
+cd .. || exit
+
+cd okgen || exit
+make -s
+cd .. || exit
+
+cd ingen || exit
+make -s
+cd .. || exit
+
+#################################
+# PROBLEM CONFIGURATION
+#################################
+
+# initialize problemconfig variables
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
 source problemconfig
+
+# Check if problemconfig variables are set
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
 
 ############################
 # ARGUMENT PARSING
@@ -17,73 +44,71 @@ rebuild_inputs=true
 
 while getopts "r:ho" opt; do
     case $opt in
-        h)
-            echo "Usage: ./run -r(estore) [revision to restore]"
+        h)  # Help:
+            echo "Usage: ./run [-r REVISION] [-o]"
+            echo "    -r REVISION -- restores REVISION"
+            echo "    -o          -- rebuilds only the .ok files"
             exit 0
             ;;
-        r)
+        r)  # Restore old revision
             rm -r tests
-            unzip oldtests/$OPTARG.zip
+            unzip "oldtests/$OPTARG.zip"
             exit 0
             ;;
-        o)
+        o)  # DO only the ok's again
             rebuild_inputs=false
+            ;;
+        *)
+            echo "Bad options"
+            exit 1
             ;;
     esac
 done
 
-read -p "Name of this test revision: " testrevision
 
-# We will want to remember this:
+############################
+# Building tests
+############################
+
+# Get test revision name
+read -p "Name of this test revision: " -r testrevision
+
+# For all lines of the test manifest:
 currtest=0
-
-# Loop over lines of 
-cat testmanifest | while read instr; do
+while read -r instr; do
     # Parse a line of testmanifest
+
+    # shellcheck disable=SC2086
     set $instr
     numberoftests=$1
     incf=$2
     totalpoints=$3
-    points=$(($totalpoints / $numberoftests))
 
-    for nr in `seq $currtest $(($currtest + $numberoftests - 1))` ; do
-        echo $nr
-        #################
-        # Build input:
-        #################
+    # Get the number of points per test
+    points=$((totalpoints / numberoftests))
+
+    # For all tests of this kind:
+    for ((nr=$"currtest"; nr<"$currtest"+"$numberoftests" ; nr++)) ; do
+        (
+        echo Building test "$nr"
 
         if [ $rebuild_inputs = true ] ; then
-            build_test_number $nr $incf
+            ./lib/build_test_number "$nr" "$incf"
         fi
 
-        ###################
-        # Build ok
-        ###################
+        ./lib/build_ok_number "$nr" "$points"
 
-        # Build ok generator
-        cd okgen && make -s && cd ..
-
-        # Copy ok generator and input into stage
-        cp okgen/okgen.bin stage/$problemname.bin
-        cp tests/$problemname-$nr.in stage/$problemname.in
-
-        # Indicate the number of points in the stage
-        echo $points > stage/$problemname.points
-
-        # Build ok
-        cd stage && ./$problemname.bin && cd ..
-
-        # Copy ok from stage into tests
-        cp stage/$problemname.ok tests/$problemname-$nr.ok
-
-        # Clean stage
-        rm stage/*
+        echo Done test "$nr"
+        ) &
     done
 
     #update currtest
-    currtest=$(($currtest + $numberoftests))
-done
+    currtest=$((currtest + numberoftests))
+done < testmanifest
 
-if [ -n $testrevision ] ; then
-    zip -r oldtests/$testrevision.zip tests/*
+wait
+
+# Store this revision in oldtests
+if [ -n "$testrevision" ] ; then
+    zip -r "oldtests/$testrevision.zip" tests/*
 fi

@@ -1,10 +1,18 @@
 #!/bin/bash
 #
-# compare -s "s1 s2" -s s3 -c "c1 c2" -c c3 compares sources s1, s2, s3 with configurations c1 c2 c3 until they diverge
+# compares sources
 # Tamio-Vesa Nakajima
 
-source lib
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
 source problemconfig
+
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
 
 srcs=""
 configs=""
@@ -12,7 +20,9 @@ configs=""
 while getopts "hs:c:" opt ; do
     case $opt in
         h)
-            echo "Usage: ./compare -s \"source1\" -s \"source2\" -c \"config1\" \"config2\""
+            echo "Usage: ./compare -s SRC1 ... -s SRCn -c CONF1 ... -c CONFm"
+            echo "    -s SRC1 ... -s SRCn -- compares SRC1 to ... to SRCn"
+            echo "    -c CONF1 ... -s CONm -- using config files CONF1 ... CONFm"
             exit 0
             ;;
         s)
@@ -21,68 +31,72 @@ while getopts "hs:c:" opt ; do
         c)
             configs="$configs $OPTARG"
             ;;
+        *)
+            echo Bad options
+            exit 1
+            ;;
     esac
 done
 
 if [ -z "$srcs" ] ; then
-    echo No sources provided
+    echo No sources provided >&2
     exit 1
 fi
 
 if [ -z "$configs" ] ; then
-    echo No configs provided
+    echo No configs provided >&2
     exit 1
 fi
 
-srcs_arr=($srcs)
+# shellcheck disable=SC2086
+srcs_arr=()
+read -a srcs_arr -r <<< "$srcs"
 nr_srcs=${#srcs_arr[@]}
 outputs_arr=()
 binary_arr=()
-input_file=`mktemp`
 
-for i in `seq 0 $(($nr_srcs-1))` ; do
-    outputs_arr[$i]=`mktemp`
-    binary_arr[$i]=`mktemp`
+for ((i=0; i<nr_srcs; i++)) ; do
+    outputs_arr[$i]=$(mktemp)
+    binary_arr[$i]=$(mktemp)
 done
 
-for i in `seq 0 $(($nr_srcs-1))` ; do
-    g++ src/${srcs_arr[$i]} -std=c++11 -O2 -o ${binary_arr[$i]}
+for ((i=0; i<nr_srcs; i++)) ; do
+    g++ "src/${srcs_arr[$i]}" -std=c++11 -O2 -o "${binary_arr[$i]}"
 done
 
 curr_test=0
 
-path_to_tests=`realpath tests`
-trap "rm $path_to_tests/$problemname-999.in" EXIT
+path_to_tests=$(realpath tests)
+trap 'rm $path_to_tests/$problemname-999.in' EXIT
 
 while : ; do
     for conf in $configs ; do
-        rm stage/* 2> /dev/null
-        echo -en "                        \r"
-        echo Doing test $curr_test
-        curr_test=$(($curr_test + 1))
+        echo -en "                        \\r" >&2
+        echo Doing test $curr_test >&2
+        curr_test=$((curr_test + 1))
 
-        build_test_number 999 $conf
+        ./lib/build_test_number 999 "$conf"
 
         hasTle=false
 
-        for i in `seq 0 $(($nr_srcs-1))` ; do
-            run_src_test ${binary_arr[$i]} $problemname-999
+        for((i=0; i<nr_srcs; i++)) ; do
+            timeUsed=$(./lib/run_src_test "${outputs_arr[$i]}" "${binary_arr[$i]}" "$problemname-999")
 
             if (( $(echo "$timeUsed > $timelimit" | bc -l ) )) ; then
                 hasTle=true
             fi
-
-            cp stage/$problemname.out ${outputs_arr[$i]}
         done
+
+        # shellcheck disable=SC2086
         if [ $hasTle = true ] || ! diff --from-file ${outputs_arr[*]} > /dev/null ; then
-            echo -en "                           \r"
-            echo Has failed on:
+            echo -en "                           \\r" >&2
+            echo Has failed on: >&2
             cat tests/$problemname-999.in
-            echo With outputs:
-            for i in `seq 0 $(($nr_srcs-1))` ; do
-                echo ${srcs_arr[$i]}:
+            echo With outputs: >&2
+            for((i=0 ; i<nr_srcs; i++)) ; do
+                echo ${srcs_arr[$i]}: >&2
                 cat ${outputs_arr[$i]}
-                echo
+                echo >&2
             done
             exit 0
         fi

@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Tamio-Vesa Nakajima
+# Evaluates the binary $1 with test $2, returning the message in $message, the time used in $timeUsed and the points in $points
+
+# include the configuration
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
+source problemconfig
+
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
+
+binary=$1
+testname=$2
+output_location=$(mktemp)
+timeUsed=$(./lib/run_src_test "$output_location" "$binary" "$testname")
+
+if (( $(echo "$timeUsed > $timelimit" | bc -l))) ; then
+    # Set the return values
+    # timeUsed is already set
+    message=TLE
+    points=0
+elif [ ! -e  "$output_location" ] ; then
+    message="MissingOutput"
+    points=0
+else
+    # Make a stage
+    stage=$(mktemp -d)
+
+    # Move output into stage
+    mv "$output_location" "$stage/$problemname.out"
+
+    # Copy the evaluator into the stage
+    cp eval/eval.bin "$stage/eval.bin"
+
+    # Copy the ok file into the stage
+    cp "tests/$testname.ok" "$stage/$problemname.ok"
+
+    # Create temporary files to hold the points and the eval message
+    pointsFile=$(mktemp)
+    messageFile=$(mktemp)
+
+    # Enter the stage and evaluate, storing the results in $pointsFile and $messageFile
+    curr_file=$PWD
+    cd "$stage" || exit
+    ./eval.bin > "$pointsFile" 2> "$messageFile"
+    cd "$curr_file" || exit
+
+    # Set the return values
+    # timeUsed is already set
+    points=$(cat "$pointsFile")
+    message=$(cat "$messageFile")
+fi
+
+echo "$message" "$timeUsed" "$points"

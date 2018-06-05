@@ -2,106 +2,154 @@
 #
 # Runs sources on tests
 # Tamio-Vesa Nakajima
-#
-# Use cases:
-# ./run.sh -> runs all sources on all tests
-# ./run.sh -s "a.cpp b.cpp" -s c.cpp -> runs a,b,c.cpp on all tests
-# ./run.sh -t "00 01 02" -> runs all sources on tests 00, 01, 02
-# ./run.sh -s a.cpp -t 00 -> runs a.cpp on 00
 
-##########################
-# GENERAL SETUP
-#########################
+#################################
+# Build necesisties
+#################################
 
-# include the library
-source lib
+cd eval || exit
+make -s
+cd .. || exit
 
-# include the configuration
+cd okgen || exit
+make -s
+cd .. || exit
+
+cd ingen || exit
+make -s
+cd .. || exit
+
+#################################
+# PROBLEM CONFIGURATION
+#################################
+
+# initialize problemconfig variables
+problemname=""
+timelimit=""
+
+# shellcheck disable=SC1091
 source problemconfig
 
-# make stage (as git deletes it)
-mkdir -p stage
+# Check if problemconfig variables are set
+if [ -z "$problemname" ] || [ -z "$timelimit" ] ; then
+    echo Bad config file
+    exit 1
+fi
 
 ############################
 # ARGUMENT PARSING
 #############################
 
+run_in_parallel=false
+
 # default values for used sources and used tests
 
-srcs=""
-tests=""
+srcs=()
+tests=()
 
-while getopts "hs:t:" opt; do
+while getopts "hs:t:p" opt; do
     case $opt in
         h)
-            echo "Usage: ./run -s [source] -t [test]"
+            echo "Usage: ./run [-s SRC1] ... [-s SRCn] [-t TEST1] ... [-t TESTm] [-p]"
+            echo "    -s SRC1 ... -s SRCn   -- run SRC1 ... SRCn ; if no -s is included, run all sources"
+            echo "    -t TEST1 ... -t TESTm -- run on TEST1 ... TESTm ; if no -t is included, run on all tests"
+            echo "    -p                    -- run all sources in parallel" 
             exit 0
             ;;
         s)
             for x in $OPTARG ; do
-                srcs="$srcs $x"
+                srcs+=("$x")
             done
             ;;
         t)
             for x in $OPTARG ; do
-                tests="$tests $problemname-$x"
+                tests+=("$problemname-$x")
             done
+            ;;
+        p)
+            run_in_parallel=true
+            ;;
+        *)
+            echo Bad option
+            exit 1
             ;;
     esac
 done
             
-if [ -z "$srcs" ] ; then
-    srcs=`ls -1 src | grep .cpp`
+if [ ${#src[@]} -eq 0 ] ; then
+    cd src || exit
+    srcs=(*)
+    cd .. || exit
 fi
 
-if [ -z "$tests" ] ; then
-    tests=`ls -1 tests | grep .in | awk -F '.' '{print $1}'`
+if [ ${#tests[@]} -eq 0 ] ; then
+    cd tests || exit
+    for x in *.in ; do
+        tests+=( "$( echo "$x" | cut -f 1 -d '.')" )
+    done
+    cd .. || exit
 fi
-
-tests=`echo $tests | sort -t '-' -k 1 -n`
-
 
 ###########################
 # EVALUATING
 ##########################
 
-for src in $srcs ; do
+for src in "${srcs[@]}" ; do
+    # Make a stage
+    stage=$(mktemp -d)
+
     # Copy the source into the stage
-    try "cp src/$src stage/$problemname.cpp" "source file missing"
+    cp "src/$src" "$stage/$problemname.cpp"
 
     # Create a temporary file to hold the problem binary
-    binary=`mktemp`
+    binary=$(mktemp)
 
     # Build the source
-    try "g++ stage/$problemname.cpp -std=c++11 -o $binary -O2" "Compile error"
+    g++ "$stage/$problemname.cpp" -std=c++11 -o "$binary" -O2
+
+    # Delete the stage
+    rm -rf "$stage"
 
     # Make a temporary file to hold the table:
-    table=`mktemp`
+    table=$(mktemp)
 
     # $table holds the score table
-    echo $src > $table
-    echo Test Message Time Points >> $table
+    echo "$src" > "$table"
+    echo Test Message Time Points >> "$table"
 
     # For all tests
-    for testname in $tests ; do
-        # evaluate $binary on $testname, setting $message, $timeUsed, $points
-        evaluate_src_test $binary $testname
-        echo $testname.in $message $timeUsed $points >> $table
+    for testname in "${tests[@]}" ; do
+        fun (){
+            # evaluate $binary on $testname, setting $message, $timeUsed, $points
+            set "$(./lib/evaluate_src_test "$binary" "$testname")"
+            message=$1
+            timeUsed=$2
+            points=$3
+
+            echo "$testname.in" "$message" "$timeUsed" "$points" >> "$table"
+        }
+        if [ "$run_in_parallel" == "true" ] ; then
+            ( fun ) &
+        else
+            fun
+        fi
     done
 
+    if [ "$run_in_parallel" == "true" ] ; then
+        wait
+    fi
+
     # Clear "Doing test ..."
-    echo -en "\r                               \r"
+    echo -en "\\r                               \\r" >&2
 
     # Output the table
-    column -t $table
+    column -t "$table"
 
     # Calculate the score
-    echo SCORE: `awk -F ' ' '$1 != "Test" {sum += 0 $4} END {print sum}' $table`
+    echo SCORE: "$(awk -F ' ' '$1 != "Test" {sum += 0 $4} END {print sum}' "$table")" >&2
 
     # Clear the temporary files
-    rm $table
-    rm $binary
+    rm "$table"
+    rm "$binary"
 
-    # And the stage
-    rm stage/*
 done

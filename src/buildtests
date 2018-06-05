@@ -45,7 +45,9 @@ rebuild_inputs=true
 while getopts "r:ho" opt; do
     case $opt in
         h)  # Help:
-            echo "Usage: ./run -r(estore) [revision to restore]"
+            echo "Usage: ./run [-r REVISION] [-o]"
+            echo "    -r REVISION -- restores REVISION"
+            echo "    -o          -- rebuilds only the .ok files"
             exit 0
             ;;
         r)  # Restore old revision
