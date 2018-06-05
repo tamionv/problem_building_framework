@@ -43,14 +43,13 @@ cp "tests/$testname.in" "$stage/$problemname.in"
 runExec="./$problemname.bin"
 
 # This string runs the competitors executable with an appropriate timeout
-runExecWithTimeout=" 
-$timeoutCommand $timelimit $runExec"
+runExecWithTimeout="$timeoutCommand $timelimit $runExec"
 
 # Run the competitors executable with a timeout, and store the time used in timeUsed
 curr_dirr=$PWD
 cd "$stage" || exit
 timeUsed=$({ time $runExecWithTimeout ; } 2>&1 >/dev/null \
-    | awk -F ' ' '{ if($1=="user" || $1 == "sys") { print $2 } }' \
+    | awk -F ' ' '{ if($1=="real") { print $2 } }' \
     | awk -F 'm' '{print $2}' \
     | awk -F 's' '{print $1}' \
     | awk 'BEGIN { total = 0; } { total += $1; } END { print total; }' )
