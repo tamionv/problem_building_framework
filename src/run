@@ -71,7 +71,7 @@ while getopts "hs:t:p" opt; do
             done
             ;;
         p)
-            run_in_parallel=false
+            run_in_parallel=true
             ;;
         *)
             echo Bad option
